@@ -156,7 +156,7 @@ void StepMotorEnable_2(u8 Judge)
 void StepMotorDirection_2(MotorRotationEnum Rotation)
 {
 	assert_param(IS_MOTOR_ROTATION(Rotation));
-	PDout(13) = Rotation;
+	PDout(13) = !Rotation;
 }
 void StepMotorPWMEnable_2(u8 Judge)
 {
@@ -254,7 +254,6 @@ void StepMotorFrequencyConversion_3(int Frequency)
 }
 //*******************************************************************
 
-
 void MotorDataInit()
 {
 	u8 i;
@@ -264,28 +263,44 @@ void MotorDataInit()
 	MotorControlData[0].StepMotorDirection = &StepMotorDirection_0;
 	MotorControlData[0].StepMotorPWMEnable = &StepMotorPWMEnable_0;
 	MotorControlData[0].StepMotorFrequencyConversion = &StepMotorFrequencyConversion_0;
-	MotorControlData[0].SetLocation =0;
+	MotorControlData[0].SetLocation =STEPMOTOR_0_INIT_ANGLE;
+	MotorControlData[0].LocationPID.Kp = STEPMOTOR_0_KP;
+	MotorControlData[0].LocationPID.Ki = STEPMOTOR_0_KI;
+	MotorControlData[0].LocationPID.Kd = STEPMOTOR_0_KD;
+	MotorControlData[0].LocationPID.Kc = STEPMOTOR_0_KC;
 	
 	MotorControlData[1].StepMotorInit = &StepMotorInit_1;
 	MotorControlData[1].StepMotorEnable = &StepMotorEnable_1;
 	MotorControlData[1].StepMotorDirection = &StepMotorDirection_1;
 	MotorControlData[1].StepMotorPWMEnable = &StepMotorPWMEnable_1;
 	MotorControlData[1].StepMotorFrequencyConversion = &StepMotorFrequencyConversion_1;
-	MotorControlData[1].SetLocation =0;
+	MotorControlData[1].SetLocation =STEPMOTOR_1_INIT_ANGLE;
+	MotorControlData[1].LocationPID.Kp = STEPMOTOR_1_KP;
+	MotorControlData[1].LocationPID.Ki = STEPMOTOR_1_KI;
+	MotorControlData[1].LocationPID.Kd = STEPMOTOR_1_KD;
+	MotorControlData[1].LocationPID.Kc = STEPMOTOR_1_KC;
 	
 	MotorControlData[2].StepMotorInit = &StepMotorInit_2;
 	MotorControlData[2].StepMotorEnable = &StepMotorEnable_2;
 	MotorControlData[2].StepMotorDirection = &StepMotorDirection_2;
 	MotorControlData[2].StepMotorPWMEnable = &StepMotorPWMEnable_2;
 	MotorControlData[2].StepMotorFrequencyConversion = &StepMotorFrequencyConversion_2;
-	MotorControlData[2].SetLocation =0;
+	MotorControlData[2].SetLocation =STEPMOTOR_2_INIT_ANGLE;
+	MotorControlData[2].LocationPID.Kp = STEPMOTOR_2_KP;
+	MotorControlData[2].LocationPID.Ki = STEPMOTOR_2_KI;
+	MotorControlData[2].LocationPID.Kd = STEPMOTOR_2_KD;
+	MotorControlData[2].LocationPID.Kc = STEPMOTOR_2_KC;
 	
 	MotorControlData[3].StepMotorInit = &StepMotorInit_3;
 	MotorControlData[3].StepMotorEnable = &StepMotorEnable_3;
 	MotorControlData[3].StepMotorDirection = &StepMotorDirection_3;
 	MotorControlData[3].StepMotorPWMEnable = &StepMotorPWMEnable_3;
 	MotorControlData[3].StepMotorFrequencyConversion = &StepMotorFrequencyConversion_3;
-	MotorControlData[3].SetLocation =0;
+	MotorControlData[3].SetLocation =STEPMOTOR_3_INIT_ANGLE;
+	MotorControlData[3].LocationPID.Kp = STEPMOTOR_3_KP;
+	MotorControlData[3].LocationPID.Ki = STEPMOTOR_3_KI;
+	MotorControlData[3].LocationPID.Kd = STEPMOTOR_3_KD;
+	MotorControlData[3].LocationPID.Kc = STEPMOTOR_3_KC;
 	
 	for(i=0;i<TESTMOTORNUMBER;i++)
 	{
@@ -295,10 +310,7 @@ void MotorDataInit()
 		MotorControlData[i].LocationPID.clear=&PidClear;
 		MotorControlData[i].LocationPID.clear(&MotorControlData[i].LocationPID);
 		//------------------PID赋值-------------------------
-		MotorControlData[i].LocationPID.Kp = STEPMOTOR_KP;
-		MotorControlData[i].LocationPID.Ki = STEPMOTOR_KI;
-		MotorControlData[i].LocationPID.Kd = STEPMOTOR_KD;
-		MotorControlData[i].LocationPID.Kc = STEPMOTOR_KC;
+
 		
 		MotorControlData[i].StepMotorInit();
 		MotorControlData[i].StepMotorEnable(ENABLE);
@@ -317,7 +329,7 @@ void MotorControlLogic(void)
 	MotorControlData[3].LocationPID.Fdb = MotorControlData[3].AngleDataProcessed[1]/180.0f ;		//归一化
 	for(i=0;i<TESTMOTORNUMBER;i++)
 	{
-		MotorControlData[i].LocationPID.Ref = MotorControlData[0].SetLocation/180.0f;			//参考量
+		MotorControlData[i].LocationPID.Ref = MotorControlData[i].SetLocation/180.0f;			//参考量
 		
 		MotorControlData[i].LocationPID.calc(&MotorControlData[i].LocationPID);
 		if(fabs(MotorControlData[i].LocationPID.Out)>DEADZONE_CONVERT)

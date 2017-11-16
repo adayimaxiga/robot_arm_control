@@ -98,9 +98,9 @@ void TIM3ConfigurePWM(void)
 	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1; //选择定时器模式:TIM脉冲宽度调制模式2
  	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable; //比较输出使能
 	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High; //输出极性:TIM输出比较极性低
-	TIM_OC3Init(TIM3, &TIM_OCInitStructure);  //根据T指定的参数初始化外设TIM2 OC3
+	TIM_OC1Init(TIM3, &TIM_OCInitStructure);  //根据T指定的参数初始化外设TIM2 OC3
 
-	TIM_OC3PreloadConfig(TIM3, TIM_OCPreload_Enable);  //使能TIM14在CCR1上的预装载寄存器
+	TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);  //使能TIM14在CCR1上的预装载寄存器
  
   TIM_ARRPreloadConfig(TIM3,ENABLE);//ARPE使能 
 	
@@ -137,9 +137,9 @@ void TIM4ConfigurePWM(void)
 	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1; //选择定时器模式:TIM脉冲宽度调制模式2
  	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable; //比较输出使能
 	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High; //输出极性:TIM输出比较极性低
-	TIM_OC3Init(TIM4, &TIM_OCInitStructure);  //根据T指定的参数初始化外设TIM2 OC3
+	TIM_OC1Init(TIM4, &TIM_OCInitStructure);  //根据T指定的参数初始化外设TIM2 OC3
 
-	TIM_OC3PreloadConfig(TIM4, TIM_OCPreload_Enable);  //使能TIM14在CCR1上的预装载寄存器
+	TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Enable);  //使能TIM14在CCR1上的预装载寄存器
  
   TIM_ARRPreloadConfig(TIM4,ENABLE);//ARPE使能 
 	
@@ -182,7 +182,7 @@ void TIM5ConfigurePWM(void)
  
   TIM_ARRPreloadConfig(TIM5,ENABLE);//ARPE使能 
 	
-	TIM_SetCompare2(TIM5,0xffff);	//修改比较值，修改占空比
+	TIM_SetCompare3(TIM5,0xffff);	//修改比较值，修改占空比
 	
 	TIM_Cmd(TIM5, ENABLE);  //使能TIM14
 }

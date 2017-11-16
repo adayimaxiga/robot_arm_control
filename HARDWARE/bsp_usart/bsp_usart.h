@@ -14,6 +14,7 @@ void Usart1Init(void);
 void Usart2Init(void);
 void Usart3Init(void);
 void Uart4Init(void);
+void Uart5Init(void);
 
 
 #endif

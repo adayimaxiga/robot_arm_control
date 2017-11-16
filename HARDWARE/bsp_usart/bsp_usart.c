@@ -48,6 +48,44 @@ void DMAHandlerDataProcessed(u8 MotorNumber)
 	}
 }
 
+void DMA1Steam0HandlerGyroProcessed()
+{
+	u8 i;
+	if(GyroData.UsartBuffer[0]==0x55)
+	{
+		for(i=0;i<8;i++)
+		{
+			GyroData.CharToShort.Char[i]=GyroData.UsartBuffer[i+2];
+		}
+		switch(GyroData.UsartBuffer[1])
+		{
+			case 0x51:
+				for(i=0;i<3;i++)
+				{
+					GyroData.AccelerateDataProcessed[i]=GyroData.CharToShort.Short[i]/32768.0*16;
+				}
+				break;
+			case 0x52:
+				for(i=0;i<3;i++)
+				{
+					GyroData.GyroDataProcessed[i]=GyroData.CharToShort.Short[i]/32768.0*2000;
+				}
+				break;
+			case 0x53:
+				for(i=0;i<3;i++)
+				{
+					GyroData.AngleDataProcessed[i]=GyroData.CharToShort.Short[i]/32768.0*180;
+				}
+				GyroData.FlagReceiveAngle = 1;
+				break;
+			default:
+				break;
+		}
+		GyroData.Temperature=GyroData.CharToShort.Short[3]/32768.0*16;
+	}
+	
+}
+
 void Usart1Init()
 {
 /* -------------- Enable Module Clock Source ----------------------------*/
@@ -193,20 +231,20 @@ void Usart2Init()
 void Usart3Init()
 {
 /* -------------- Enable Module Clock Source ----------------------------*/
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD | RCC_AHB1Periph_DMA1, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC | RCC_AHB1Periph_DMA1, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);
-	GPIO_PinAFConfig(GPIOD,GPIO_PinSource9, GPIO_AF_USART3);
+	GPIO_PinAFConfig(GPIOC,GPIO_PinSource11, GPIO_AF_USART3);
 	/* -------------- Configure GPIO ---------------------------------------*/
 	{
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 ;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 ;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOD, &GPIO_InitStructure);
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
 		
 	USART_InitStructure.USART_BaudRate = REMOTE_RECEIVER_BAUDRATE	;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
@@ -215,7 +253,7 @@ void Usart3Init()
 	USART_InitStructure.USART_Mode = USART_Mode_Rx;
 	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
 	USART_Init(USART3,&USART_InitStructure);
-		
+
 	USART_ITConfig(USART3,USART_IT_IDLE,ENABLE);			//空闲中断
 	
 	USART_Cmd(USART3,ENABLE);
@@ -332,6 +370,78 @@ void Uart4Init()
 	}
 }
 
+void Uart5Init()
+{
+/* -------------- Enable Module Clock Source ----------------------------*/
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD | RCC_AHB1Periph_DMA1, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5, ENABLE);
+	GPIO_PinAFConfig(GPIOD,GPIO_PinSource2, GPIO_AF_UART5);
+	/* -------------- Configure GPIO ---------------------------------------*/
+	{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	USART_InitTypeDef USART_InitStructure;
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 ;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOD, &GPIO_InitStructure);
+		
+	USART_InitStructure.USART_BaudRate = REMOTE_RECEIVER_BAUDRATE	;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_InitStructure.USART_Mode = USART_Mode_Rx;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_Init(UART5,&USART_InitStructure);
+	
+	USART_ITConfig(UART5,USART_IT_IDLE,ENABLE);			//空闲中断
+	
+	USART_Cmd(UART5,ENABLE);
+	USART_DMACmd(UART5,USART_DMAReq_Rx,ENABLE);
+	}
+	/* -------------- Configure NVIC ---------------------------------------*/
+	{
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_InitStructure.NVIC_IRQChannel = DMA1_Stream0_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+
+	NVIC_InitStructure.NVIC_IRQChannel=UART5_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_Init(&NVIC_InitStructure);
+	}
+	/* -------------- Configure DMA -----------------------------------------*/
+	{
+	DMA_InitTypeDef DMA_InitStructure;
+	DMA_DeInit(DMA1_Stream0);
+	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&(UART5->DR);
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)GyroData.UsartBuffer;
+	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
+	DMA_InitStructure.DMA_BufferSize = 11;
+	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
+	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+	DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;
+	DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;
+	DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;
+	DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_1QuarterFull;
+	DMA_InitStructure.DMA_MemoryBurst = DMA_Mode_Normal;
+	DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+	
+	DMA_Init(DMA1_Stream0,&DMA_InitStructure);
+	DMA_ITConfig(DMA1_Stream0,DMA_IT_TC,ENABLE);
+	DMA_Cmd(DMA1_Stream0,ENABLE);
+	}
+}
+
+
 //串口空闲中断校验		暴力重启
 void USART1_IRQHandler(void)														//数据校验
 {
@@ -382,6 +492,20 @@ void UART4_IRQHandler(void)														//数据校验
 	}
 }
 
+//串口空闲中断校验		暴力重启
+void UART5_IRQHandler(void)														//数据校验
+{
+	if(USART_GetITStatus(UART5,USART_IT_IDLE) != RESET)
+	{
+		DMA_Cmd(DMA1_Stream0,DISABLE);
+		(void)UART5->SR;				//清除中断
+		(void)UART5->DR;				//清除数据
+		DMA_Cmd(DMA1_Stream0,ENABLE);																		//重启DMA，防止丢帧
+		USART_ClearFlag(UART5,USART_IT_IDLE);
+	}
+}
+
+
 void DMA2_Stream5_IRQHandler(void)
 {
 	if(DMA_GetITStatus(DMA2_Stream5, DMA_IT_TCIF5))
@@ -422,5 +546,16 @@ void DMA1_Stream2_IRQHandler(void)
 		DMA_ClearITPendingBit(DMA1_Stream2, DMA_IT_TCIF2);
 		
 		DMAHandlerDataProcessed(3);
+	}
+}
+
+void DMA1_Stream0_IRQHandler(void)
+{
+	if(DMA_GetITStatus(DMA1_Stream0, DMA_IT_TCIF0))
+	{
+		DMA_ClearFlag(DMA1_Stream0, DMA_FLAG_TCIF0);
+		DMA_ClearITPendingBit(DMA1_Stream0, DMA_IT_TCIF0);
+		
+		DMA1Steam0HandlerGyroProcessed();
 	}
 }
