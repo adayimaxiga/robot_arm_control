@@ -1,0 +1,5 @@
+*.mxproject
+*.scratch
+*.bat
+/OBJ
+!keilkilll.bat

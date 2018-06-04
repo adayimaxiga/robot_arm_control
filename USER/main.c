@@ -3,7 +3,7 @@
 MotorControlStruct MotorControlData[NUMBEROFMOTOR];
 GyroDataStruct GyroData;
 
-void MotorDataInit(void);			
+void MotorDataInit(void);
 
 void UserDefinition()		//1ms
 {

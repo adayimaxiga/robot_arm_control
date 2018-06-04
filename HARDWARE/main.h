@@ -75,6 +75,10 @@ typedef struct
 	float AngleDataProcessed[3];															//欧拉角度
 	float Temperature;																				//温度量
 	
+	float AngleDataTempSave[3];
+	int AngleDataCount[3];
+	float AngleLastDataSave[3];
+	
 	MotorRotationEnum MotorRotation;													//电机旋转方向保存
 	
 	void (*StepMotorInit)();																	//电机参数初始化函数，必须第一个调用
